@@ -1,0 +1,34 @@
+# Environment Variables
+.env
+
+# Secrets
+credentials.json
+client_secret.json
+
+# Logs and Audit Reports (User Requested)
+LOG.md
+AUDIT.md
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# IDEs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# folders
+secrets/*   

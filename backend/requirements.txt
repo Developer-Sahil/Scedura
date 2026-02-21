@@ -1,0 +1,18 @@
+fastapi
+uvicorn
+python-dotenv
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+langchain-google-genai
+langchain
+pydantic
+
+# New for Auth & DB
+firebase-admin
+sqlalchemy
+authlib
+httpx
+itsdangerous
+google-genai
