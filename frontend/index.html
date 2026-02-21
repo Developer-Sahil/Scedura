@@ -44,50 +44,14 @@
       </div>
     </div>
 
-    <div class="main-content">
-      <!-- Left Panel: Manual Scheduling -->
-      <div class="panel manual-panel">
-        <h2>Schedule a Meeting</h2>
-        <p>Secure a 30-minute slot manually.</p>
-
-        <form id="meetingForm" novalidate style="flex: 1; display: flex; flex-direction: column;">
-          <div class="form-group">
-            <label for="name">Your Name</label>
-            <input type="text" id="name" name="name" placeholder="John Doe" autocomplete="name" required />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="date">Date</label>
-              <input type="date" id="date" name="date" required />
-            </div>
-            <div class="form-group">
-              <label for="time">Time (IST)</label>
-              <input type="time" id="time" name="time" required />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="title">Title (Optional)</label>
-            <input type="text" id="title" name="title" placeholder="e.g. Project Sync" maxlength="150" />
-          </div>
-
-          <div style="margin-top: auto;">
-            <button type="submit" id="submitBtn" class="primary-btn">
-              <span class="spinner" id="spinner"></span>
-              <span id="btnLabel">Confirm Scheduling</span>
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Right Panel: AI Assistant -->
+    <div class="assistant-container">
+      <!-- Scedura Voice Assistant -->
       <div class="panel ai-panel">
         <div class="ai-bg"></div>
 
-        <div>
+        <div class="ai-header">
           <h2>Scedura Assistant</h2>
-          <p>Tap below and ask to check slots or book.</p>
+          <p>Ask to check slots, book, or cancel meetings.</p>
         </div>
 
         <div class="chat-container" id="chatLog">

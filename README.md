@@ -1,4 +1,4 @@
-# Scedura: AI Meeting Scheduler
+# Scedura: Voice Schedular Agent
 
 A professional meeting scheduling application with a FastAPI backend, vanilla JS frontend, and **Multi-User Google Calendar integration**. Users can log in with Google, connect their individual calendars, and schedule meetings via a manual form or a low-latency **Vapi-powered voice assistant**.
 

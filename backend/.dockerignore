@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
+credentials.json
+scedura-credentials.json
+client_secret.json
+meetings.db
+Dockerfile
+.dockerignore
+.git
+.github

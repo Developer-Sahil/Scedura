@@ -4,10 +4,9 @@
 # Secrets
 credentials.json
 client_secret.json
+scedura-credentials.json
 
-# Logs and Audit Reports (User Requested)
-LOG.md
-AUDIT.md
+# Logs and Audit Reports
 *.log
 
 # Python

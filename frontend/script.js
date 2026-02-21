@@ -1,20 +1,37 @@
-// ── Config ────────────────────────────────────────────────────────────────
-const API_BASE = "https://entopic-everleigh-unanthologized.ngrok-free.dev";
+// For local development, use localhost. Vapi/Voice Agent features REQUIRES a public URL (like Ngrok).
+const API_BASE = "http://localhost:8000";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCDUdRMRYCyLtR9tT84rAuYDzCU42rbHtk",
-    authDomain: "scedura-344cd.firebaseapp.com",
-    projectId: "scedura-344cd",
-    storageBucket: "scedura-344cd.firebasestorage.app",
-    messagingSenderId: "686782617144",
-    appId: "1:686782617144:web:b572a01591ee8963f938cd",
-    measurementId: "G-MD91J505W4"
-};
+let auth = null;
+let provider = null;
+let publicVapiKey = null;
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const provider = new firebase.auth.GoogleAuthProvider();
+// ── Remote Config ──────────────────────────────────────────────────────────
+async function initRemoteConfig() {
+    try {
+        console.log("Fetching remote config from:", `${API_BASE}/config`);
+        const response = await fetch(`${API_BASE}/config`);
+        if (!response.ok) throw new Error("Backend unreachable");
+        const config = await response.json();
+
+        // Initialize Firebase
+        firebase.initializeApp(config.firebase);
+        auth = firebase.auth();
+        provider = new firebase.auth.GoogleAuthProvider();
+
+        // Save Vapi Key
+        publicVapiKey = config.vapi.publicKey;
+
+        // Attach Auth Listener
+        auth.onAuthStateChanged(onAuthChanged);
+
+        console.log("Application configuration loaded successfully.");
+    } catch (error) {
+        console.error("CRITICAL: Failed to load config:", error);
+        showToast("error", "Application configuration failed. Check backend connection.");
+    }
+}
+
+initRemoteConfig();
 
 let currentUser = null;
 let authToken = null;
@@ -28,13 +45,17 @@ const userName = document.getElementById("userName");
 const connectCalendarBtn = document.getElementById("connectCalendarBtn");
 
 document.getElementById("googleLoginBtn").addEventListener("click", () => {
+    if (!auth) {
+        showToast("error", "Configuration still loading...");
+        return;
+    }
     auth.signInWithPopup(provider).catch((error) => {
         showToast("error", error.message);
     });
 });
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
-    auth.signOut();
+    if (auth) auth.signOut();
 });
 
 document.getElementById("connectCalendarBtn").addEventListener("click", () => {
@@ -43,14 +64,14 @@ document.getElementById("connectCalendarBtn").addEventListener("click", () => {
     window.location.href = `${API_BASE}/auth/google/login?uid=${currentUser.uid}`;
 });
 
-auth.onAuthStateChanged(async (user) => {
+async function onAuthChanged(user) {
     if (user) {
         currentUser = user;
         authToken = await user.getIdToken();
 
         // UI Updates
         loginOverlay.style.display = "none";
-        appContainer.style.display = "block"; // Changed to block to allow flex children logic
+        appContainer.style.display = "block";
         appContainer.classList.add("fade-in");
 
         userAvatar.src = user.photoURL;
@@ -64,7 +85,7 @@ auth.onAuthStateChanged(async (user) => {
         loginOverlay.style.display = "flex";
         appContainer.style.display = "none";
     }
-});
+}
 
 async function checkCalendarStatus() {
     try {
@@ -101,92 +122,8 @@ function showToast(type, message, linkHtml = "") {
     }, 5000);
 }
 
-// ── Form Logic ────────────────────────────────────────────────────────────
-function setLoading(isLoading) {
-    const btn = document.getElementById("submitBtn");
-    const spinner = document.getElementById("spinner");
-    const label = document.getElementById("btnLabel");
-    btn.disabled = isLoading;
-    spinner.style.display = isLoading ? "block" : "none";
-    label.textContent = isLoading ? "Processing..." : "Confirm Scheduling";
-}
 
-function formatIST(isoString) {
-    try {
-        return new Date(isoString).toLocaleString("en-IN", {
-            timeZone: "Asia/Kolkata",
-            weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-        });
-    } catch { return isoString; }
-}
-
-// Default date
-(function setDefaultDate() {
-    const dateInput = document.getElementById("date");
-    if (!dateInput) return; // Guard for safety
-    const today = new Date().toLocaleDateString("en-CA");
-    dateInput.value = today;
-    dateInput.min = today;
-})();
-
-document.getElementById("meetingForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!authToken) {
-        showToast("error", "You must be logged in.");
-        return;
-    }
-
-    const name = document.getElementById("name").value.trim();
-    const date = document.getElementById("date").value;
-    const time = document.getElementById("time").value;
-    const title = document.getElementById("title").value.trim();
-
-    if (!name || !date || !time) {
-        showToast("error", "Please fill in all required fields.");
-        return;
-    }
-
-    setLoading(true);
-
-    try {
-        const response = await fetch(`${API_BASE}/create-meeting`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authToken}`
-            },
-            body: JSON.stringify({ name, date, time, title: title || undefined }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            showToast("error", data.detail || "Booking failed.");
-            return;
-        }
-
-        // Success
-        showToast("success", `Booked: ${data.title}. Redirecting to calendar...`);
-        e.target.reset();
-
-        // Redirect to calendar after a short delay
-        if (data.calendar_link) {
-            setTimeout(() => {
-                window.location.href = data.calendar_link;
-            }, 2000);
-        }
-
-        // Restore default date
-        const dateInput = document.getElementById("date");
-        if (dateInput) dateInput.value = new Date().toLocaleDateString("en-CA");
-
-    } catch (err) {
-        console.error(err);
-        showToast("error", "Connection error. Ensure backend is running.");
-    } finally {
-        setLoading(false);
-    }
-});
+// ── Scedura Voice Assistant Logic ──────────────────────────────────────────
 
 // ── Vapi Voice Logic ──────────────────────────────────────────────────────
 const micBtn = document.getElementById("micBtn");
@@ -202,7 +139,11 @@ function getVapi() {
             console.error("Vapi SDK not yet loaded from esm.sh");
             return null;
         }
-        vapi = new window.Vapi("pGYsZruQzo8cpdFVZyJc");
+        if (!publicVapiKey) {
+            console.error("Vapi Public Key not yet loaded from backend config");
+            return null;
+        }
+        vapi = new window.Vapi(publicVapiKey);
         setupVapiListeners();
     }
     return vapi;
